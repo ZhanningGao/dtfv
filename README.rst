@@ -37,6 +37,9 @@ The pretrained codebooks on these two dataset are also provided.
 Please see our WACV_ 2013 paper for more details.
 
 =====
+Forked from Chensun11/dtfv
+04/07/2017 Zhanning Gao
+* Plan to conduct experiments on TRECVID MEDtest 2014 dataset with IDT+FV for event detection.
 
 
 .. _ALGLIB: http://www.alglib.net/
