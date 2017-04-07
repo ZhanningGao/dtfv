@@ -36,6 +36,9 @@ The pretrained codebooks on these two dataset are also provided.
 
 Please see our WACV_ 2013 paper for more details.
 
+=====
+
+
 .. _ALGLIB: http://www.alglib.net/
 .. _VLFeat: http://www.vlfeat.org/
 .. _DT: https://lear.inrialpes.fr/people/wang/improved_trajectories
