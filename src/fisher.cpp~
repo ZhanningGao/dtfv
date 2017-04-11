@@ -62,7 +62,7 @@ bool FisherVector::addPoint(vector<double> feat, double x_pos, double y_pos)   {
     vector<double> lfv(codeBook->dimension * codeBook->numClusters * 2, 0.0);
     // compute soft-assignments with gmm
     double *posteriors = new double[codeBook->numClusters];
-    vl_get_gmm_data_12dnvz]_d(posteriors, codeBook->numClusters, 1, codeBook->priors, codeBook->means, codeBook->dimension, codeBook->covs, (double *)&feat[0]);
+    vl_get_gmm_data_posteriors_d(posteriors, codeBook->numClusters, 1, codeBook->priors, codeBook->means, codeBook->dimension, codeBook->covs, (double *)&feat[0]);
     // compute fv
     for (int cluster = 0; cluster < codeBook->numClusters; cluster++)   {
         int ptr1 = cluster * codeBook->dimension;       // for first-order term

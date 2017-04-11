@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
     }
     
     t2 = clock();
-    cout<< "Runing time for FV: " << (double)(t2-t1)/CLOCKS_PER_SEC << "s" <<endl;
+    cout<< "Runing time for FV: "(double)(t2-t1)/CLOCKS_PER_SEC << "s" <<endl;
     
     cout<<"Points load complete."<<endl;
     for (int i = 0; i < fvs.size(); i++)    {
