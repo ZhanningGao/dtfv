@@ -18,9 +18,9 @@ PCAWrapper::PCAWrapper(string fileName, bool whitening)  {
     }
     this->whitening = whitening;
     fin>>oDim>>pDim;
-    projMat = new double[oDim * pDim];
-    aveVec = new double[oDim];
-    eigVec = new double[pDim];
+    projMat = new TYPE[oDim * pDim];
+    aveVec = new TYPE[oDim];
+    eigVec = new TYPE[pDim];
     for (int i = 0; i < oDim*pDim; i++)
         fin>>projMat[i];
     for (int i = 0; i < oDim; i++)
@@ -39,15 +39,15 @@ PCAWrapper::~PCAWrapper()   {
         delete [] eigVec;
 }
 
-vector<double> PCAWrapper::project(vector<double> input)   {
-    vector<double> result(pDim, 0.0);
+vector<TYPE> PCAWrapper::project(vector<TYPE> input)   {
+    vector<TYPE> result(pDim, 0.0);
     if (input.size() != oDim)
         return result;
     // subtract by mean
     for (int i = 0; i < oDim; i++)
         input[i] -= aveVec[i];
     for (int i = 0; i < pDim; i++)  {
-        double val = 0.0;
+        TYPE val = 0.0;
         // project
         for (int j = 0; j < oDim; j++)  {
             val += projMat[i*oDim+j] * input[j];
@@ -60,13 +60,13 @@ vector<double> PCAWrapper::project(vector<double> input)   {
     return result;
 }
 
-bool PCAWrapper::train(vector<vector<double> > &inputData, int pDim, string outputFile) {
+bool PCAWrapper::train(vector<vector<TYPE> > &inputData, int pDim, string outputFile) {
     if (inputData.size() < 1 || inputData[0].size() < 1)
         return false;
     size_t numSamples = inputData.size();
     oDim = inputData[0].size();
-    double *dataMat = new double[numSamples * oDim];
-    aveVec = new double[oDim];
+    TYPE *dataMat = new TYPE[numSamples * oDim];
+    aveVec = new TYPE[oDim];
     for (int i = 0; i < oDim; i++)
         aveVec[i] = 0.0;
     for (int i = 0; i < numSamples; i++)
@@ -75,7 +75,7 @@ bool PCAWrapper::train(vector<vector<double> > &inputData, int pDim, string outp
             aveVec[j] += inputData[i][j];
         }
     for (int i = 0; i < oDim; i++)
-        aveVec[i] /= (double) numSamples;
+        aveVec[i] /= (TYPE) numSamples;
     alglib::real_2d_array ptInput;
     ptInput.setcontent(numSamples, oDim, dataMat);
     alglib::ae_int_t info;
@@ -89,8 +89,8 @@ bool PCAWrapper::train(vector<vector<double> > &inputData, int pDim, string outp
         pDim = cols;
     this->pDim = pDim;
     
-    projMat = new double[pDim * oDim];
-    eigVec = new double[pDim];
+    projMat = new TYPE[pDim * oDim];
+    eigVec = new TYPE[pDim];
 
     for (int i = 0; i < pDim; i++)  {
         eigVec[i] = 1 / sqrt(eigValues[i]);

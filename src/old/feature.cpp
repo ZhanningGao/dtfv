@@ -39,7 +39,7 @@ DTFeature::DTFeature(string featureLine)	{
 		ss>>mbhy[i];
 }
 
-DTFeature::DTFeature(const DTFeature &f)	{
+DTFeature::DTFeature(const DTFeature &f){
 	frameNum = f.frameNum;
 	mean_x = f.mean_x;
 	mean_y = f.mean_y;

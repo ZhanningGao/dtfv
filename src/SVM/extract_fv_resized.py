@@ -26,10 +26,7 @@ def extract(videoName, outputBase):
     if check_dup(outputBase):
         print '%s processed' % videoName
         return True
-    resizedName = os.path.join(tmpDir, os.path.basename(videoName))
-    if not ffmpeg.resize(videoName, resizedName):
-        resizedName = videoName     # resize failed, just use the input video
-    subprocess.call('%s %s | %s %s %s %s' % (dtBin, resizedName, fvBin, pcaList, codeBookList, outputBase), shell=True)
+    subprocess.call('%s %s | %s %s %s %s' % (dtBin, videoName, fvBin, pcaList, codeBookList, outputBase), shell=True)
 
     return True
 
@@ -52,7 +49,7 @@ def check_dup(outputBase):
     return True
 
 if __name__ == '__main__':
-    videoList = "/home/gzn/Desktop/data/zhanning/datasets/UCF-101/UCFList.txt"
+    videoList = "/home/gzn/Desktop/data/zhanning/datasets/UCF-101/UCFList_resize.txt"
     outputBase = "/home/gzn/Desktop/data/zhanning/UCF_FV"
     totalTasks = 8
     pID = sys.argv[1]

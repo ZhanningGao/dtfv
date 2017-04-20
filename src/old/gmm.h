@@ -1,6 +1,8 @@
 #ifndef GaussianMM_H
 #define GaussianMM_H
 
+#define TYPE float
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -22,11 +24,11 @@ class GMMWrapper    {
 
         bool train(string dataFile, vl_size numClusters, string codeBookName);
     private:
-        double *loadData(string dataFile, vl_size &numData, vl_size &dimension);
+        TYPE *loadData(string dataFile, vl_size &numData, vl_size &dimension);
     public:
-        double *means;
-        double *covs;
-        double *priors;
+        TYPE *means;
+        TYPE *covs;
+        TYPE *priors;
         int dimension;
         int numClusters;
 };

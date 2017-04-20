@@ -16,9 +16,9 @@ GMMWrapper::GMMWrapper(string codeBookName) {
         exit(-1);
     }
     fin>>dimension>>numClusters;
-    means = new double[numClusters * dimension];
-    covs = new double[numClusters * dimension];
-    priors = new double[numClusters];
+    means = new TYPE[numClusters * dimension];
+    covs = new TYPE[numClusters * dimension];
+    priors = new TYPE[numClusters];
 
     for (int i = 0; i < numClusters * dimension; i++)
         fin >> means[i];
@@ -39,7 +39,7 @@ GMMWrapper::~GMMWrapper()   {
         delete [] priors;
 }
 
-double *GMMWrapper::loadData(string dataFile, vl_size &numData, vl_size &dimension)    {
+TYPE *GMMWrapper::loadData(string dataFile, vl_size &numData, vl_size &dimension)    {
     ifstream fin;
     fin.open(dataFile.c_str());
     if (!fin.is_open()) {
@@ -47,13 +47,13 @@ double *GMMWrapper::loadData(string dataFile, vl_size &numData, vl_size &dimensi
         return NULL;
     }
 
-    vector<vector<double> > inputData;
+    vector<vector<TYPE> > inputData;
     string line;
     stringstream ss;
-    double val;
+    TYPE val;
     while (getline(fin, line))  {
         ss<<line;
-        vector<double> feat;
+        vector<TYPE> feat;
         while (ss>>val)
             feat.push_back(val);
         inputData.push_back(feat);
@@ -65,7 +65,7 @@ double *GMMWrapper::loadData(string dataFile, vl_size &numData, vl_size &dimensi
     numData = inputData.size();
     dimension = inputData[0].size();
 
-    double *data = new double[numData*dimension];
+    TYPE *data = new TYPE[numData*dimension];
     for (int dataIdx = 0; dataIdx < numData; dataIdx++) {
         for (int d = 0; d < dimension; d++) {
             data[dataIdx*dimension+d] = inputData[dataIdx][d];
@@ -75,7 +75,7 @@ double *GMMWrapper::loadData(string dataFile, vl_size &numData, vl_size &dimensi
 }
 
 bool GMMWrapper::train(string dataFile, vl_size numClusters, string codeBookName) {
-    double sigmaLowerBound = 0.000001;
+    TYPE sigmaLowerBound = 0.000001;
     vl_size numData = 0;
     vl_size dimension = 0;
     vl_size maxiter = 300;
@@ -84,16 +84,16 @@ bool GMMWrapper::train(string dataFile, vl_size numClusters, string codeBookName
     vl_size ntrees = 2;
     vl_size maxComp = 100;
 
-    double * data = loadData(dataFile, numData, dimension);
+    TYPE * data = loadData(dataFile, numData, dimension);
     if (data == NULL)   {
         return false;
     }
     vl_set_num_threads(0) ;
 
-    VlGMM *gmm = vl_gmm_new (VL_TYPE_DOUBLE, dimension, numClusters) ;
+    VlGMM *gmm = vl_gmm_new (VL_TYPE_TYPE, dimension, numClusters) ;
 
     // init with KMeans
-    VlKMeans *kmeans = vl_kmeans_new(VL_TYPE_DOUBLE,VlDistanceL2);
+    VlKMeans *kmeans = vl_kmeans_new(VL_TYPE_TYPE,VlDistanceL2);
     vl_kmeans_set_verbosity (kmeans,1);
     vl_kmeans_set_max_num_iterations (kmeans, maxiterKM);
     vl_kmeans_set_max_num_comparisons (kmeans, maxComp);
@@ -113,13 +113,13 @@ bool GMMWrapper::train(string dataFile, vl_size numClusters, string codeBookName
     vl_gmm_cluster (gmm, data, numData);
     delete [] data;
 
-    double *vl_means = (double *) vl_gmm_get_means(gmm);
-    double *vl_covs = (double *) vl_gmm_get_covariances(gmm);
-    double *vl_priors = (double *) vl_gmm_get_priors(gmm);
+    TYPE *vl_means = (TYPE *) vl_gmm_get_means(gmm);
+    TYPE *vl_covs = (TYPE *) vl_gmm_get_covariances(gmm);
+    TYPE *vl_priors = (TYPE *) vl_gmm_get_priors(gmm);
 
-    means = new double[numClusters * dimension];
-    covs = new double[numClusters * dimension];
-    priors = new double[numClusters];
+    means = new TYPE[numClusters * dimension];
+    covs = new TYPE[numClusters * dimension];
+    priors = new TYPE[numClusters];
     
     for (int i = 0; i < numClusters * dimension; i++)   {
         means[i] = vl_means[i];
