@@ -61,12 +61,12 @@ void saveArr(float* arr, int len, char* filename){
   assert( (fp=fopen(filename, "w")) && "File open eror!!" ); 
   int i;
   for(i=0; i<len; i++)
-    {
+  {
       //      cout<<"Write "<<i<<", "<<arr[i]<<endl;
-      fprintf(fp, "%lf ", arr[i]);
-    }
-  fprintf(fp, "\n");
-  fclose(fp);
+    fprintf(fp, "%lf ", arr[i]);
+}
+fprintf(fp, "\n");
+fclose(fp);
 }
 
 void saveMat(float* arr, int rows, int column, char* filename){
@@ -76,10 +76,10 @@ void saveMat(float* arr, int rows, int column, char* filename){
   for(int r = 0; r < rows; r++){
     for (int c = 0; c < column; c++){
       fprintf(fp, "%f ", arr[IDX2C(r,c,rows)]);
-    }
-    fprintf(fp, "\n");
   }
-  fclose(fp);
+  fprintf(fp, "\n");
+}
+fclose(fp);
 }
 
 
@@ -149,40 +149,40 @@ bool gpu_gmm_1(TYPE const * covariances, TYPE const * priors, TYPE const * means
   int threads1 = THREADS;
   if(numClusters < THREADS) {
     threads1 = numClusters;
-  }
-  int numblocks1 = numClusters/threads1;
-  if(numClusters%threads1) {
+}
+int numblocks1 = numClusters/threads1;
+if(numClusters%threads1) {
     numblocks1 ++;
-  }
+}
   //  size_t localThreads[3]  = {threads1, 1, 1};
 
-  dim3 blocks (numblocks1,1, 1);
-  dim3 localThreads (threads1, 1, 1);
+dim3 blocks (numblocks1,1, 1);
+dim3 localThreads (threads1, 1, 1);
 
-  int numblocks2 = numData/ITEMS + 1;
-  if(numData%ITEMS) {
+int numblocks2 = numData/ITEMS + 1;
+if(numData%ITEMS) {
     numblocks2 ++;
-  }
-  if(numblocks2 > 65530)
+}
+if(numblocks2 > 65530)
     numblocks2 = 65530;
-  dim3 blocks2(numblocks2, 1, 1);
-  dim3 localThreads2(THREADS2, 1, 1);
+dim3 blocks2(numblocks2, 1, 1);
+dim3 localThreads2(THREADS2, 1, 1);
 
-  int numblocks3 = numData/ITEMS3 + 1;
-  if(numData%ITEMS3) {
+int numblocks3 = numData/ITEMS3 + 1;
+if(numData%ITEMS3) {
     numblocks3 ++;
-  }
+}
   //  cout<<"Total blocks for Kernel 2 "<<numblocks2<<endl;
 
-  dim3 blocks3 (numblocks3, 1, 1);
+dim3 blocks3 (numblocks3, 1, 1);
 
   //{ globalSizeX, globalSizeY, 1};
 
-  dim3 localThreads3 (THREADS3,1,1);
+dim3 localThreads3 (THREADS3,1,1);
 
-  cudaMalloc((void**)&enc_d, 2*dimension*numClusters*numblocks3*sizeof(TYPE));
-  cudaError_t err = cudaGetLastError();
-  if(err!=cudaSuccess)
+cudaMalloc((void**)&enc_d, 2*dimension*numClusters*numblocks3*sizeof(TYPE));
+cudaError_t err = cudaGetLastError();
+if(err!=cudaSuccess)
     cout<<"Malloc Err "<<cudaGetErrorString(err)<<", "<<cudaSuccess<<endl;
 
   /*********** Set other parameters *********/
@@ -191,14 +191,14 @@ bool gpu_gmm_1(TYPE const * covariances, TYPE const * priors, TYPE const * means
   //    cout<<"Then "<<data[i]<<endl;
 
 
-  cudaMemcpy(tmp2_d, data, numData*dimension*sizeof(TYPE), cudaMemcpyHostToDevice);
-  
-  err = cudaGetLastError();
-  if(err!=cudaSuccess)
+cudaMemcpy(tmp2_d, data, numData*dimension*sizeof(TYPE), cudaMemcpyHostToDevice);
+
+err = cudaGetLastError();
+if(err!=cudaSuccess)
     cout<<"Memcpy Err "<<cudaGetErrorString(err)<<", "<<cudaSuccess<<endl;
 
 #endif
-  
+
   /*  cudaMemcpy(data, tmp2_d, numData*dimension*sizeof(TYPE), cudaMemcpyDeviceToHost);
   for(int i=numData*dimension-100;i<numData*dimension;i++)
     cout<<"Then "<<data[i]<<endl;
@@ -212,22 +212,22 @@ bool gpu_gmm_1(TYPE const * covariances, TYPE const * priors, TYPE const * means
   for(int i=0;i<50;i++) {
     cout<<"data "<<data[i]<<", "<<means[i]<<", "<<priors[i]<<" "<<covariances[i]<<endl;
     }*/
-  
+
   //  TYPE* temp = (TYPE*) malloc(numData*numClusters*sizeof(TYPE));
-  
-  gmm_1<<<numblocks1, localThreads>>>(covariances_d, invCovariances_d, logCovariances_d, logWeights_d, priors_d, dimension, numClusters, infinity, sqrtInvSigma_d);
-  err = cudaGetLastError();
-  if(err!=cudaSuccess)
+
+gmm_1<<<numblocks1, localThreads>>>(covariances_d, invCovariances_d, logCovariances_d, logWeights_d, priors_d, dimension, numClusters, infinity, sqrtInvSigma_d);
+err = cudaGetLastError();
+if(err!=cudaSuccess)
     cout<<"gmm1 Err "<<cudaGetErrorString(err)<<", "<<cudaSuccess<<endl;
 
-  start = wallclock();
+start = wallclock();
   /////////------------------------kernel gmm2
-  gmm_2<<<blocks2, localThreads2>>>(invCovariances_d, logCovariances_d, logWeights_d, posteriors_d, numClusters, halfDimLog2Pi, tmp2_d, means_d, infinity, numData, dimension);
-  cudaThreadSynchronize();
-  err = cudaGetLastError();
-  if(err!=cudaSuccess)
+gmm_2<<<blocks2, localThreads2>>>(invCovariances_d, logCovariances_d, logWeights_d, posteriors_d, numClusters, halfDimLog2Pi, tmp2_d, means_d, infinity, numData, dimension);
+cudaThreadSynchronize();
+err = cudaGetLastError();
+if(err!=cudaSuccess)
     cout<<"gmm2 Err "<<cudaGetErrorString(err)<<", "<<cudaSuccess<<endl;
-  cout<<"Kernel 2 "<<wallclock() - start<<endl;
+cout<<"Kernel 2 "<<wallclock() - start<<endl;
   /*
   float* temp = (float*)malloc(numData*numClusters*sizeof(float));    
   
@@ -236,15 +236,15 @@ bool gpu_gmm_1(TYPE const * covariances, TYPE const * priors, TYPE const * means
    cout<<i%numClusters<<" GPU posteriors "<<temp[i]<<endl;
   //   free(temp);
   */
-  start = wallclock();
-  gmm_3<<<blocks3, localThreads3>>>(enc_d, tmp2_d, means_d, sqrtInvSigma_d, posteriors_d, dimension, numClusters, numData, priors_d);
+start = wallclock();
+gmm_3<<<blocks3, localThreads3>>>(enc_d, tmp2_d, means_d, sqrtInvSigma_d, posteriors_d, dimension, numClusters, numData, priors_d);
   /*
   cudaMemcpy(data, priors_d, 100*sizeof(TYPE), cudaMemcpyDeviceToHost);
   for(int i=0;i<100;i++) {
     cout<<"Data "<<data[i]<<endl;
   }
   */
-  cudaThreadSynchronize();
+cudaThreadSynchronize();
   /*
   cudaMemcpy(temp, sqrtInvSigma_d, numClusters*82*sizeof(float), cudaMemcpyDeviceToHost);
   for(int i=0;i<numClusters*82;i++) {
@@ -252,22 +252,22 @@ bool gpu_gmm_1(TYPE const * covariances, TYPE const * priors, TYPE const * means
     cout<<"Enc "<<temp[i]<<endl;
     }
   */
-  err = cudaGetLastError();
-  if(err!=cudaSuccess)
+err = cudaGetLastError();
+if(err!=cudaSuccess)
     cout<<"gmm3 Err "<<cudaGetErrorString(err)<<", "<<cudaSuccess<<endl;
-  cout<<"Kernel 3 "<<wallclock() - start<<endl;
+cout<<"Kernel 3 "<<wallclock() - start<<endl;
   ////////////
-  
 
-  start = wallclock();
-  gmm_4<<<numClusters, 128>>>(enc_d, dimension, numClusters, numblocks3);
-  err = cudaGetLastError();
-  if(err!=cudaSuccess)
+
+start = wallclock();
+gmm_4<<<numClusters, 128>>>(enc_d, dimension, numClusters, numblocks3);
+err = cudaGetLastError();
+if(err!=cudaSuccess)
     cout<<"gmm4 Err "<<cudaGetErrorString(err)<<", "<<cudaSuccess<<endl;
 
-  cudaThreadSynchronize();
-      
-  
+cudaThreadSynchronize();
+
+
   //  cout<<"Kernel 4 "<<wallclock() - start<<endl;
 
 /*#define THREADS_P 128
@@ -296,13 +296,13 @@ bool gpu_gmm_1(TYPE const * covariances, TYPE const * priors, TYPE const * means
   //dim3 blocksnorm(numClusters,1 , 1);
   //dim3 threadsnorm( 128, 1, 1);
   //prefix_norm<<<blocksnorm, threadsnorm>>>(enc_d, numData, numClusters, dimension, numClusters, n);
-  cudaMemcpy(enc_g, enc_d, total_size*2, cudaMemcpyDeviceToHost);
+cudaMemcpy(enc_g, enc_d, total_size*2, cudaMemcpyDeviceToHost);
   //WARNING: tmp2_d is allocated at sift time
-  cudaFree(sum_d);
-  cudaFree(enc_d);
-  cudaFree(posteriors_d);
-  cudaFree(tmp2_d);
-  return 0;
+cudaFree(sum_d);
+cudaFree(enc_d);
+cudaFree(posteriors_d);
+cudaFree(tmp2_d);
+return 0;
 }
 
 /////////////////////
@@ -333,32 +333,32 @@ void gpu_pca_mm(float* projection, float* projectionCenter, float* data, float* 
   for(int j=0;j<128;j++) {
     for(int i=0;i<80;i++) {
       projection2[j*82+i] = projection[i+j*80];
-    }
   }
-  for(int j=0;j<128;j++) {
+}
+for(int j=0;j<128;j++) {
     for(int i=80;i<82;i++) {
       projection2[i+82*j] = 0.0;
-    }
   }
-  
-  cudaMemcpy(projection_d, projection2, 128*82*sizeof(float), cudaMemcpyHostToDevice);
-  cudaMemcpy(data_d, data, numData*128*sizeof(float), cudaMemcpyHostToDevice);
-  cudaMemcpy(projectionCenter_d, projectionCenter, 128*sizeof(float), cudaMemcpyHostToDevice);
-  dim3 threads(128,1,1);
-  dim3 blocks(1024,1,1);
-  kernel1<<<blocks, threads>>>(tempsum_d, data_d, projectionCenter_d, numData);
-  cublasStatus_t ret = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, uiHA, uiWB, uiWA,&alpha, projection_d, uiHA, tempsum_d, uiWA, &beta, tmp2_d, uiHA);
+}
+
+cudaMemcpy(projection_d, projection2, 128*82*sizeof(float), cudaMemcpyHostToDevice);
+cudaMemcpy(data_d, data, numData*128*sizeof(float), cudaMemcpyHostToDevice);
+cudaMemcpy(projectionCenter_d, projectionCenter, 128*sizeof(float), cudaMemcpyHostToDevice);
+dim3 threads(128,1,1);
+dim3 blocks(1024,1,1);
+kernel1<<<blocks, threads>>>(tempsum_d, data_d, projectionCenter_d, numData);
+cublasStatus_t ret = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, uiHA, uiWB, uiWA,&alpha, projection_d, uiHA, tempsum_d, uiWA, &beta, tmp2_d, uiHA);
 
   //checkError(ret, "cublas Sgemm returned an error!\n");
-  cudaMemcpy(dst, tmp2_d, 82*numData*sizeof(float), cudaMemcpyDeviceToHost);
-  cublasDestroy(handle);
-  free(projection2);
-  
-  cudaFree(tmp2_d);
-  cudaFree(tempsum_d);
-  cudaFree(projection_d);
-  cudaFree(projectionCenter_d);
-  cudaFree(data_d);
+cudaMemcpy(dst, tmp2_d, 82*numData*sizeof(float), cudaMemcpyDeviceToHost);
+cublasDestroy(handle);
+free(projection2);
+
+cudaFree(tmp2_d);
+cudaFree(tempsum_d);
+cudaFree(projection_d);
+cudaFree(projectionCenter_d);
+cudaFree(data_d);
 }
 
 void gpu_pca_gzn(float* projection, float* projectionCenter, float* data, float* dst, int numData, int dimension, int dim_ori) {
@@ -428,7 +428,7 @@ void gpu_imconvcoltri(float* dst, const float* src, int src_height, int src_widt
     //    dim3 blocks(src_height, 1, 1);
   dim3 blocks(src_height, 1, 1);
   init_grads<<<blocks, threads>>>(grads_d, src_d, src_width, src_height);
-    
+  
   ///////////////////////  
   double start = wallclock();
   for(int bint=0;bint<1;bint++) {
@@ -437,7 +437,7 @@ void gpu_imconvcoltri(float* dst, const float* src, int src_height, int src_widt
     dim3 blocks(src_width, 1, 1);
 
     imconvcoltri<<<blocks, threads>>>(tmp1_d, src_height, src_d+src_width*src_height*bint, src_width, filterSize);
-   
+    
     cudaMemcpy(dst+src_height*src_width*0, tmp1_d, src_height * src_width * 8*sizeof(TYPE), cudaMemcpyDeviceToHost);  
 
     dim3 threads2(256, 1, 1); //src_width + filterSize, 1, 1);
@@ -445,33 +445,33 @@ void gpu_imconvcoltri(float* dst, const float* src, int src_height, int src_widt
     if(src_height%4)
       block_2 ++;
 
-    dim3 blocks2(block_2, 1, 1);
-    imconvcoltri2<<<blocks2, threads2>>>(tmp2_d+src_width*src_height*bint, src_width, tmp1_d+src_width*src_height*bint, src_height, filterSize, w_d);
-   
-    cout<<"Error "<<error<<cudaGetErrorString((cudaError_t)cudaGetLastError())<<endl;
-    start = wallclock();  
-  }
+  dim3 blocks2(block_2, 1, 1);
+  imconvcoltri2<<<blocks2, threads2>>>(tmp2_d+src_width*src_height*bint, src_width, tmp1_d+src_width*src_height*bint, src_height, filterSize, w_d);
+  
+  cout<<"Error "<<error<<cudaGetErrorString((cudaError_t)cudaGetLastError())<<endl;
+  start = wallclock();  
+}
 
   //Get the final output (4*4 *8)
 
-  float* output_d;
-  cudaMalloc(((void**)&output_d), 128* resized_height * resized_width*sizeof(float));
+float* output_d;
+cudaMalloc(((void**)&output_d), 128* resized_height * resized_width*sizeof(float));
   //cout<<"Err "<<cudaGetErrorString((cudaError_t)cudaGetLastError())<<endl;
 
-  cudaMemcpy(w_d, w_g, 16 * sizeof(TYPE), cudaMemcpyHostToDevice);
+cudaMemcpy(w_d, w_g, 16 * sizeof(TYPE), cudaMemcpyHostToDevice);
   /*  
   cout<<"Resized "<<resized_width<<", "<<resized_height<<endl;
   for(int i=0;i<16;i++)
     cout<<"GPU wg is "<<w_g[i]<<endl;
   */
-  dim3 threads3(128, 1, 1);
-  dim3 blocks3(resized_height, resized_width,1);
-  multWX<<<blocks3, threads3>>>(tmp2_d, output_d, w_d, 4, resized_width, resized_height, src_height, src_width);
+dim3 threads3(128, 1, 1);
+dim3 blocks3(resized_height, resized_width,1);
+multWX<<<blocks3, threads3>>>(tmp2_d, output_d, w_d, 4, resized_width, resized_height, src_height, src_width);
   //  cout<<"Err "<<cudaGetErrorString((cudaError_t)cudaGetLastError())<<endl;
   ////////////////////////////////
   ///////////normalization
   //////////////
-    int terms = resized_width * resized_height;
+int terms = resized_width * resized_height;
     //    cout<<"Total terms "<<terms<<" "<<endl;
 
     /*    
@@ -480,11 +480,11 @@ void gpu_imconvcoltri(float* dst, const float* src, int src_height, int src_widt
     cout<<"End norm "<<i<<", "<<dst[i]<<endl;
     */
 
-    dim3 localThreadssiftnorm(THREADS_S, 1,1);
-    dim3 blockssiftnorm(terms, 1, 1);
-    sift_normalize<<<blockssiftnorm, localThreadssiftnorm>>>(output_d, terms);
+dim3 localThreadssiftnorm(THREADS_S, 1,1);
+dim3 blockssiftnorm(terms, 1, 1);
+sift_normalize<<<blockssiftnorm, localThreadssiftnorm>>>(output_d, terms);
     //  cout<<"Err "<<cudaGetErrorString((cudaError_t)cudaGetLastError())<<endl;
-  cudaMemcpy(dst, output_d, 128*resized_height * resized_width*sizeof(TYPE), cudaMemcpyDeviceToHost);
+cudaMemcpy(dst, output_d, 128*resized_height * resized_width*sizeof(TYPE), cudaMemcpyDeviceToHost);
 
   /*    
   for(int i=0;i<128;i++)
@@ -492,12 +492,12 @@ void gpu_imconvcoltri(float* dst, const float* src, int src_height, int src_widt
   */
     ////////////////////
   //cout<<"Copy time "<<wallclock() - start<<endl;
-  cudaFree(grads_d);
-  cudaFree(w_d);
-  cudaFree(src_d);
-  cudaFree(tmp1_d);
-  cudaFree(tmp2_d);
-  cudaFree(output_d);
+cudaFree(grads_d);
+cudaFree(w_d);
+cudaFree(src_d);
+cudaFree(tmp1_d);
+cudaFree(tmp2_d);
+cudaFree(output_d);
 }
 void gpu_imconvcoltri_fv(float* dst, const float* src, int src_height, int src_width, int binsize, float* w_g, int resized_height, int resized_width, float deltaCenterX, float deltaCenterY, float scale, int offset, int firstflag, int lastflag, int total, float* siftframe, int scaleindex) {
   //For the first convoltri,
@@ -511,11 +511,11 @@ void gpu_imconvcoltri_fv(float* dst, const float* src, int src_height, int src_w
     cudaMalloc((void**)&tmp2_d, sizeof(TYPE) * src_height * src_width * 8);
     cudaMalloc((void**)&w_d, sizeof(TYPE) * 16);
     //cout<<"Allocated\n";
-  }
+}
   //cout<<"Error malloc 3 "<<cudaGetErrorString((cudaError_t)cudaGetLastError())<<endl;
 
-  size_t total_size = 8*src_height*src_width*sizeof(TYPE);
-  cudaMemset(src_d, 0, total_size);
+size_t total_size = 8*src_height*src_width*sizeof(TYPE);
+cudaMemset(src_d, 0, total_size);
 #if 0
   //Use CPU resize
   cudaMalloc((void**)&grads_d, src_width*src_height*sizeof(float));
@@ -526,22 +526,22 @@ void gpu_imconvcoltri_fv(float* dst, const float* src, int src_height, int src_w
   }
   
 #endif
-  dim3 threads(THREADS_G, 1, 1);
-  dim3 blocks(src_height, 1, 1);
-  init_grads<<<blocks, threads>>>(grads_d, src_d, src_width, src_height);
-  cudaThreadSynchronize();
-  err = cudaGetLastError();
-  if(err != CUDA_SUCCESS) {
+dim3 threads(THREADS_G, 1, 1);
+dim3 blocks(src_height, 1, 1);
+init_grads<<<blocks, threads>>>(grads_d, src_d, src_width, src_height);
+cudaThreadSynchronize();
+err = cudaGetLastError();
+if(err != CUDA_SUCCESS) {
     cout<<"Error init "<<cudaGetErrorString(err)<<endl;
-  }
-  if(firstflag == 1) {
-      cudaMalloc(((void**)&frames_d), 2* total*sizeof(float));
-      cudaMalloc(((void**)&data_d), 128* total*sizeof(float));
+}
+if(firstflag == 1) {
+    cudaMalloc(((void**)&frames_d), 2* total*sizeof(float));
+    cudaMalloc(((void**)&data_d), 128* total*sizeof(float));
       //cout<<"Err "<<cudaGetErrorString((cudaError_t)cudaGetLastError())<<endl;
       //      cout<<"total "<<total*128*sizeof(float)<<" Got data! "<<data_d<<", "<<frames_d<<", "<<tmp2_d<<"\n";
-  }
+}
 
-  for(int bint=0;bint<1;bint++) {
+for(int bint=0;bint<1;bint++) {
     //    cudaMemcpy(src_d, src[bint], src_height * src_width * sizeof(TYPE), cudaMemcpyHostToDevice);
     //  cudaMemcpy(w_d, w_g, 16 * sizeof(TYPE), cudaMemcpyHostToDevice);
     //    cout<<"Copy 1 time "<<wallclock() - start<<endl;
@@ -557,7 +557,7 @@ void gpu_imconvcoltri_fv(float* dst, const float* src, int src_height, int src_w
     err = cudaGetLastError();
     if(err != CUDA_SUCCESS) {
       cout<<"Error imconv 1 "<<cudaGetErrorString(err)<<endl;
-    }
+  }
 
     //cudaThreadSynchronize();
 
@@ -568,40 +568,40 @@ void gpu_imconvcoltri_fv(float* dst, const float* src, int src_height, int src_w
 
     ///////////
     //block_2 = src_height;
-    dim3 blocks2(block_2, 1, 1);
-    imconvcoltri2<<<blocks2, threads2>>>(tmp2_d+src_width*src_height*bint, src_width, tmp1_d+src_width*src_height*bint, src_height, filterSize, w_d);
-    cudaThreadSynchronize();
-    err = cudaGetLastError();
-    if(err != CUDA_SUCCESS) {
+  dim3 blocks2(block_2, 1, 1);
+  imconvcoltri2<<<blocks2, threads2>>>(tmp2_d+src_width*src_height*bint, src_width, tmp1_d+src_width*src_height*bint, src_height, filterSize, w_d);
+  cudaThreadSynchronize();
+  err = cudaGetLastError();
+  if(err != CUDA_SUCCESS) {
       cout<<"Error imconv 2 "<<cudaGetErrorString(err)<<endl;
-    }
   }
+}
 
   //Get the final output (4*4 *8)
-      
+
   //WARNING: allocate frames_d here, need to free it later!
-  
-  cudaMemcpy(w_d, w_g, 16 * sizeof(TYPE), cudaMemcpyHostToDevice);
-  
+
+cudaMemcpy(w_d, w_g, 16 * sizeof(TYPE), cudaMemcpyHostToDevice);
+
   /*  
   cout<<"Resized "<<resized_width<<", "<<resized_height<<endl;
   for(int i=0;i<16;i++)
     cout<<"GPU wg is "<<w_g[i]<<endl;
   */
-  dim3 threads3(128, 1, 1);
-  dim3 blocks3(resized_width, resized_height,1);
+dim3 threads3(128, 1, 1);
+dim3 blocks3(resized_width, resized_height,1);
   //  cout<<"Blocks 3 "<<resized_width<<", "<<resized_height<<endl;
-  multWX<<<blocks3, threads3>>>(tmp2_d, data_d+offset*128, w_d, 4, resized_height, resized_width, src_height, src_width);
-  cudaThreadSynchronize();
-  err = cudaGetLastError();
-  if(err != CUDA_SUCCESS) {
+multWX<<<blocks3, threads3>>>(tmp2_d, data_d+offset*128, w_d, 4, resized_height, resized_width, src_height, src_width);
+cudaThreadSynchronize();
+err = cudaGetLastError();
+if(err != CUDA_SUCCESS) {
     cout<<"Error multWX 2 "<<cudaGetErrorString(err)<<endl;
-  }
+}
 
   ////////////////////////////////
   ///////////normalization
   //////////////
-  int terms = resized_width * resized_height;
+int terms = resized_width * resized_height;
   //cout<<"Total terms "<<terms<<" "<<endl;
 
     /*    
@@ -609,17 +609,17 @@ void gpu_imconvcoltri_fv(float* dst, const float* src, int src_height, int src_w
   for(int i=0;i<1024;i++)
     cout<<"End norm "<<i<<", "<<dst[i]<<endl;
     */
-  double start = wallclock();
-  dim3 localThreadssiftnorm(THREADS_S, 1,1);
+double start = wallclock();
+dim3 localThreadssiftnorm(THREADS_S, 1,1);
   //WARNING: terms could be larger than 65536
-  dim3 blockssiftnorm(32768, 1, 1);
+dim3 blockssiftnorm(32768, 1, 1);
 
-  sift_normalize<<<blockssiftnorm, localThreadssiftnorm>>>(data_d+offset*128, terms);
-  cudaThreadSynchronize();
-  err = cudaGetLastError();
-  if(err != CUDA_SUCCESS) {
+sift_normalize<<<blockssiftnorm, localThreadssiftnorm>>>(data_d+offset*128, terms);
+cudaThreadSynchronize();
+err = cudaGetLastError();
+if(err != CUDA_SUCCESS) {
     cout<<"Error sift norm "<<cudaGetErrorString(err)<<endl;
-  }
+}
   //cout<<"Sift norm "<<wallclock() - start<<endl;
   /*
   float* data = (float*)malloc(terms*128*sizeof(float));
@@ -632,33 +632,33 @@ void gpu_imconvcoltri_fv(float* dst, const float* src, int src_height, int src_w
 
   //  cudaMemcpy(dst+offset*128, data_d+offset*128, terms*128*sizeof(float), cudaMemcpyDeviceToHost);
 
-  int total_frames = 2*resized_height*resized_width;
-  int THREADSF = 256;
-  dim3 threadsf(THREADSF, 1, 1);
-  int blocks_f = total_frames/THREADSF;
-  if(total_frames%THREADSF!=0) {
+int total_frames = 2*resized_height*resized_width;
+int THREADSF = 256;
+dim3 threadsf(THREADSF, 1, 1);
+int blocks_f = total_frames/THREADSF;
+if(total_frames%THREADSF!=0) {
     blocks_f ++;
-  }
-  
-  dim3 blocksf(blocks_f, 1, 1);
+}
+
+dim3 blocksf(blocks_f, 1, 1);
       //TODO: pass this parameter
-  int step = 4;
+int step = 4;
 //  cout<<"Center "<<deltaCenterX<<", "<<deltaCenterY<<endl;
-  get_frame<<<blocksf, threadsf>>>(deltaCenterX, deltaCenterY, frames_d+2*offset, total_frames, resized_width, resized_height, step, scale);
-  cudaThreadSynchronize();
-    err = cudaGetLastError();
-    if(err != CUDA_SUCCESS) {
-      cout<<"Error get frame "<<cudaGetErrorString(err)<<endl;
-    }
+get_frame<<<blocksf, threadsf>>>(deltaCenterX, deltaCenterY, frames_d+2*offset, total_frames, resized_width, resized_height, step, scale);
+cudaThreadSynchronize();
+err = cudaGetLastError();
+if(err != CUDA_SUCCESS) {
+    cout<<"Error get frame "<<cudaGetErrorString(err)<<endl;
+}
     //  cudaMemcpy(siftframe+offset*2, frames_d+offset*2, terms*2*sizeof(float), cudaMemcpyDeviceToHost);
 
-  if(lastflag == 1) {
+if(lastflag == 1) {
     cudaFree(grads_d);
     cudaFree(w_d);
     cudaFree(src_d);
     cudaFree(tmp1_d);
     cudaFree(tmp2_d);
-  }
+}
   //  cudaFree(output_d);
 }
 void gpu_pca_encoding(float* projection, float* projectionCenter, float* dst, int numData, int dimension, int height, int width, float halfheight, float halfwidth, float* input) {
@@ -686,21 +686,21 @@ void gpu_pca_encoding(float* projection, float* projectionCenter, float* dst, in
     for(int i=0;i<80;i++) {
       //      projection2[j*82+i] = projection[i*128+j];
       projection2[j*82+i] = projection[i+j*80];
-    }
   }
-  for(int j=0;j<128;j++) {
+}
+for(int j=0;j<128;j++) {
     for(int i=80;i<82;i++) {
       projection2[i+82*j] = 0.0;
-    }
   }
-  
-  cudaMemcpy(projection_d, projection2, 128*82*sizeof(float), cudaMemcpyHostToDevice);
+}
+
+cudaMemcpy(projection_d, projection2, 128*82*sizeof(float), cudaMemcpyHostToDevice);
   //WARNING: the data is kept in GPU memroy
   //  cudaMemcpy(data_d, input, numData*128*sizeof(float), cudaMemcpyHostToDevice);
-  cudaMemcpy(projectionCenter_d, projectionCenter, 128*sizeof(float), cudaMemcpyHostToDevice);
-  dim3 threads(128,1,1);
-  dim3 blocks(1024,1,1);
-  kernel1<<<blocks, threads>>>(tempsum_d, data_d, projectionCenter_d, numData);
+cudaMemcpy(projectionCenter_d, projectionCenter, 128*sizeof(float), cudaMemcpyHostToDevice);
+dim3 threads(128,1,1);
+dim3 blocks(1024,1,1);
+kernel1<<<blocks, threads>>>(tempsum_d, data_d, projectionCenter_d, numData);
   //    if(cudaGetLastError()!=cudaSuccess)
   //  cout<<"kernel 1 Err "<<cudaGetErrorString(cudaGetLastError())<<", "<<cudaSuccess<<endl;
 
@@ -709,20 +709,20 @@ void gpu_pca_encoding(float* projection, float* projectionCenter, float* dst, in
   //  cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, uiWB, uiHA, uiWA, &alpha, d_B, uiWB, d_A, uiWA, &beta, d_C, uiWA);
 
     //    cublasStatus_t ret = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, uiHA, uiWB, uiWA,&alpha, tempsum_d, uiHA, projection_d, uiWA, &beta, tmp, uiHA);
-  cublasStatus_t ret = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, uiHA, uiWB, uiWA,&alpha, projection_d, uiHA, tempsum_d, uiWA, &beta, tmp2_d, uiHA);
+cublasStatus_t ret = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, uiHA, uiWB, uiWA,&alpha, projection_d, uiHA, tempsum_d, uiWA, &beta, tmp2_d, uiHA);
   //  cout<<"cublas Err "<<cudaGetErrorString(cudaGetLastError())<<", "<<cudaSuccess<<endl;
 
   //Add siftframe
-  int total = numData*2;
-  int THREADSF = 256;
-  dim3 threadsf(THREADSF, 1, 1);
-  int blocks_f = total/THREADSF;
-  if(blocks_f%THREADSF!=0) {
+int total = numData*2;
+int THREADSF = 256;
+dim3 threadsf(THREADSF, 1, 1);
+int blocks_f = total/THREADSF;
+if(blocks_f%THREADSF!=0) {
     blocks_f ++;
-  }
-  dim3 blocksf(blocks_f, 1, 1);
+}
+dim3 blocksf(blocks_f, 1, 1);
 
-  add_frame<<<blocksf, threadsf>>>(tmp2_d, frames_d,(float)width, (float)height, halfwidth, halfheight, total);
+add_frame<<<blocksf, threadsf>>>(tmp2_d, frames_d,(float)width, (float)height, halfwidth, halfheight, total);
 
   //#if NOSIFT
 #if 0
@@ -743,15 +743,15 @@ void gpu_pca_encoding(float* projection, float* projectionCenter, float* dst, in
   //  cudaFree(tmp2_d);
   //#endif
 
-  cublasDestroy(handle);
-  free(projection2);
-  
+cublasDestroy(handle);
+free(projection2);
+
   //  cudaFree(tmp2_d);
-  cudaFree(tempsum_d);
-  cudaFree(projection_d);
-  cudaFree(projectionCenter_d);
-  cudaFree(data_d);
-  cudaFree(frames_d);
+cudaFree(tempsum_d);
+cudaFree(projection_d);
+cudaFree(projectionCenter_d);
+cudaFree(data_d);
+cudaFree(frames_d);
 }
 
 
@@ -763,19 +763,19 @@ void gpu_resize(float* input,float* output, int height, int width, int new_h, in
     cudaMemcpy(image_1, input, height*width*sizeof(float), cudaMemcpyHostToDevice);
     cudaMalloc((void**)&inter1_d, new_h*new_w*sizeof(float));
     cudaMalloc((void**)&grads_d, new_h*new_w*sizeof(float));
-  }
-  float kernelwidth;
-  if(antialiasing == 1 && scale<1) 
+}
+float kernelwidth;
+if(antialiasing == 1 && scale<1) 
     kernelwidth = 2/scale;
-  else kernelwidth = 2;
+else kernelwidth = 2;
 
-  resize_h<<<blocks, threads>>>(inter1_d, image_1, height, width, scale, kernelwidth, antialiasing);
+resize_h<<<blocks, threads>>>(inter1_d, image_1, height, width, scale, kernelwidth, antialiasing);
   //cudaThreadSynchronize();
   //  cout<<"Err resize "<<cudaGetErrorString(cudaGetLastError())<<", "<<cudaSuccess<<endl;
-  dim3 blocks2(new_w, 1, 1);
-  resize_w<<<blocks2, threads>>>(grads_d, inter1_d, height, width, scale, new_h, new_w, kernelwidth,antialiasing);
+dim3 blocks2(new_w, 1, 1);
+resize_w<<<blocks2, threads>>>(grads_d, inter1_d, height, width, scale, new_h, new_w, kernelwidth,antialiasing);
   //cudaThreadSynchronize();
-  
+
   //cout<<"Err "<<cudaGetErrorString(cudaGetLastError())<<", "<<cudaSuccess<<endl;
   //  for(int i=0;i<100;i++)
 
@@ -788,11 +788,11 @@ void gpu_resize(float* input,float* output, int height, int width, int new_h, in
     cout<<i<<" Resized "<<output[i]<<endl;
   */
   //  cudaFree(output_d);
-  if(last_scale) {
+if(last_scale) {
     cudaFree(image_1);
     cudaFree(inter1_d);
     //cout<<"It is lost "<<endl;
-  }
+}
 }
 
 void cuda_clean() {
@@ -800,15 +800,15 @@ void cuda_clean() {
   //  cout<<"clean Err "<<cudaGetErrorString(cudaGetLastError())<<", "<<cudaSuccess<<endl;
   cudaFree(inter1_d);
   //cout<<"clean Err "<<cudaGetErrorString(cudaGetLastError())<<", "<<cudaSuccess<<endl;
-    cudaFree(grads_d);
+  cudaFree(grads_d);
     //cout<<"clean Err "<<cudaGetErrorString(cudaGetLastError())<<", "<<cudaSuccess<<endl;
-    cudaFree(w_d);
+  cudaFree(w_d);
     //cout<<"clean Err "<<cudaGetErrorString(cudaGetLastError())<<", "<<cudaSuccess<<endl;
-    cudaFree(src_d);
+  cudaFree(src_d);
     //cout<<"clean Err "<<cudaGetErrorString(cudaGetLastError())<<", "<<cudaSuccess<<endl;
-    cudaFree(tmp1_d);
+  cudaFree(tmp1_d);
     //cout<<"clean Err "<<cudaGetErrorString(cudaGetLastError())<<", "<<cudaSuccess<<endl;
-    cudaFree(tmp2_d);
+  cudaFree(tmp2_d);
     //cout<<"clean Err "<<cudaGetErrorString(cudaGetLastError())<<", "<<cudaSuccess<<endl;
 }
 void gpu_sift(float* dst1,  float ** src1,  int src_height, int src_width, float *const* filtx, float *const* filty, int Wx, int Wy, int binNum, int bin_sizex, int bin_sizey, const float* image, float* resg) {
@@ -834,51 +834,51 @@ void gpu_sift(float* dst1,  float ** src1,  int src_height, int src_width, float
     offsetssrc[i] = (src_size - sizesx[i] * sizesy[i])*8;
     offsetstmp[i] = (src_size - sizesx[i] * sizesy[i]) *32;
     offsetsdst[i] = (dst_size -  (sizesy[i]/step+1)*(sizesx[i]/step+1)) *128;
-  }
+}
 
   //  float duration;
-  start = wallclock();
-  filtx_size = 2*bin_sizex ;
-  filty_size = 2*bin_sizey ;
+start = wallclock();
+filtx_size = 2*bin_sizex ;
+filty_size = 2*bin_sizey ;
 
-  start1 = wallclock();
-  cudaMalloc((void**)&filtx_d, filtx_size*4*sizeof(float));
-  cudaMalloc((void**)&filty_d, filty_size*4*sizeof(float));
+start1 = wallclock();
+cudaMalloc((void**)&filtx_d, filtx_size*4*sizeof(float));
+cudaMalloc((void**)&filty_d, filty_size*4*sizeof(float));
 
-  for(i=0;i<4;i++) {
+for(i=0;i<4;i++) {
     cudaMemcpy(filtx_d+filtx_size*i, filtx[i], (filtx_size-1)*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(filty_d+filty_size*i, filty[i], (filty_size-1)*sizeof(float), cudaMemcpyHostToDevice);
-  }  
-  
-  start1 = wallclock();
+}  
+
+start1 = wallclock();
 
 
-  cudaMalloc((void**)&tmp2_d, sizeof(TYPE)*dst_size*128);
-  cudaMalloc((void**)&grads_d, sizeof(TYPE)*src_size);
-  cudaMalloc((void**)&src_d, sizeof(TYPE)*src_size*8);
-  cudaMalloc((void**)&tmp1_d, sizeof(TYPE)*src_size*32);
+cudaMalloc((void**)&tmp2_d, sizeof(TYPE)*dst_size*128);
+cudaMalloc((void**)&grads_d, sizeof(TYPE)*src_size);
+cudaMalloc((void**)&src_d, sizeof(TYPE)*src_size*8);
+cudaMalloc((void**)&tmp1_d, sizeof(TYPE)*src_size*32);
 
   //EXPENSIVE
-  copy_time += wallclock() - start1; 
+copy_time += wallclock() - start1; 
 
   ///////////////////////////////////
   //////////////////////initialize grads///////////////
   /////////////////////////////////////////////
-  
-  
+
+
 #define THREADX 128
 #define THREADY 128
-  for(int j = 0; j < 1; j++) {
+for(int j = 0; j < 1; j++) {
     //    float scale = scales[j];
     dim3 threadsi(THREADX, THREADY, 1);
     int blockx = sizesx[j]/THREADX;
     if(sizesx[j]%THREADS) 
       blockx++;
-    int blocky = sizesy[j]/THREADY;
-    if(sizesy[j]%THREADY)
+  int blocky = sizesy[j]/THREADY;
+  if(sizesy[j]%THREADY)
       blocky++;
 
-    dim3 blocksi(blockx, blocky, 1);
+  dim3 blocksi(blockx, blocky, 1);
     //int dst_rows = sizesy[j];
     //    int dst_cols = sizesx[j];
     //int src_cols = src_width;
@@ -886,7 +886,7 @@ void gpu_sift(float* dst1,  float ** src1,  int src_height, int src_width, float
 
     //    resize<<<blocksi, threadsi>>>(grads_d+offsetssrc[j], image_d,0, 0, src_width, src_width, src_cols, src_rows, dst_cols, dst_rows, scale, scale);
 
-    int error = cudaMemcpy(grads_d, image_d, src_height*src_width*sizeof(float), cudaMemcpyDeviceToDevice);
+  int error = cudaMemcpy(grads_d, image_d, src_height*src_width*sizeof(float), cudaMemcpyDeviceToDevice);
 
 
     /*    error = cudaMemcpy(resg, image_d, src_height * src_width *sizeof(float), cudaMemcpyDeviceToHost);
@@ -894,23 +894,23 @@ void gpu_sift(float* dst1,  float ** src1,  int src_height, int src_width, float
   for(i=0;i<200;i++)
     cout<<"Before no "<<image[i]<<", "<<resg[i]<<endl;
     */
-    dim3 threads(THREADS_G, 1, 1);
+  dim3 threads(THREADS_G, 1, 1);
     //    dim3 blocks(src_height, 1, 1);
-    dim3 blocks(sizesy[j], 1, 1);
-    cout<<"Let's do "<<offsetssrc[j]<<", "<<sizesx[j]<<", "<<sizesy[j]<<endl;    
-    init_grads<<<blocks, threads>>>(grads_d+offsetssrc[j], src_d+offsetssrc[j], sizesx[j], sizesy[j]);
+  dim3 blocks(sizesy[j], 1, 1);
+  cout<<"Let's do "<<offsetssrc[j]<<", "<<sizesx[j]<<", "<<sizesy[j]<<endl;    
+  init_grads<<<blocks, threads>>>(grads_d+offsetssrc[j], src_d+offsetssrc[j], sizesx[j], sizesy[j]);
 
     int numblocks1 = src_width; ///THREADS;
     dim3 localThreads(THREADS_S, 1, 1);
     dim3 blockssift (numblocks1, 1, 1);
 
     sift<<<blockssift, localThreads>>>(tmp1_d+offsetstmp[j], sizesy[j], src_d+offsetssrc[j],sizesx[j], sizesy[j],sizesx[j], filty_d, Wy);
- 
+    
     numblocks1 = sizesy[j]/step + 1; //src_height/step + 1;
     
     dim3 localThreadssift2 (THREADS_S, 1, 1);
     dim3 blockssift2(numblocks1, 1, 1);
-  
+    
     sift2<<<blockssift2, localThreadssift2>>>(tmp2_d+offsetsdst[j], sizesx[j], tmp1_d+offsetstmp[j], sizesy[j], sizesx[j], sizesy[j], filtx_d, Wx);
 
 
@@ -922,10 +922,10 @@ void gpu_sift(float* dst1,  float ** src1,  int src_height, int src_width, float
   ///////////////////////////
     int terms1 = (sizesy[j]-25)/step;
     //    if((sizesy[j] -24)%step)
-      terms1 ++;
+    terms1 ++;
     int terms2 = (sizesx[j]-25)/step;
     //if((sizesx[j]- 24)%step)
-      terms2++;
+    terms2++;
 
     int terms = terms1 * terms2;
     cout<<"Total terms "<<terms<<" "<<endl;
@@ -934,19 +934,19 @@ void gpu_sift(float* dst1,  float ** src1,  int src_height, int src_width, float
     dim3 blockssiftnorm(terms, 1, 1);
     sift_normalize<<<blockssiftnorm, localThreadssiftnorm>>>(tmp2_d+offsetsdst[j], terms);
     cout<<"End of normalize"<<endl;
-  }
-  double start3 = wallclock();
+}
+double start3 = wallclock();
 #if 1
-  cudaMemcpy(resg, tmp2_d, dst_size*128*sizeof(float), cudaMemcpyDeviceToHost);
+cudaMemcpy(resg, tmp2_d, dst_size*128*sizeof(float), cudaMemcpyDeviceToHost);
 #endif
   //EXPENSIVE
-  cout<<"Copy time (nouse) "<<wallclock() - start3<<endl;
-  cudaFree(image_d);
-  cudaFree(src_d);
-  cudaFree(grads_d);
-  cudaFree(filtx_d);
-  cudaFree(filty_d);
-  cudaFree(tmp1_d);
+cout<<"Copy time (nouse) "<<wallclock() - start3<<endl;
+cudaFree(image_d);
+cudaFree(src_d);
+cudaFree(grads_d);
+cudaFree(filtx_d);
+cudaFree(filty_d);
+cudaFree(tmp1_d);
   /*
   clReleaseMemObject(image_d);
   clReleaseMemObject(src_d[0]);
@@ -955,7 +955,7 @@ void gpu_sift(float* dst1,  float ** src1,  int src_height, int src_width, float
   clReleaseMemObject(filtx_d);
   clReleaseMemObject(filty_d);
   */
-  
-  finish = wallclock();
-  sift_time += finish-start;
+
+finish = wallclock();
+sift_time += finish-start;
 }

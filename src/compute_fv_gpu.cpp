@@ -2,6 +2,7 @@
 
 #include "fisher_gpu.h"
 #include "feature_f.h"
+#include "getIDTfeature.h"
 
 #include "utils.h"
 
@@ -16,9 +17,12 @@ using namespace std;
 
 #define MAX_NUM_DATA 100000
 
+
+long getIdtFeature(char *video, long MAXFEATURE, float * Traj,float *Hog, float *Hof, float *Mbhx, float *Mbhy);
+
 int main(int argc, char **argv) {
-    if (argc < 4)   {
-        cout<<"Usage: "<<argv[0]<<" pcaList codeBookList outputBase"<<endl;
+    if (argc < 5)   {
+        cout<<"Usage: "<<argv[0]<<" pcaList codeBookList outputBase videoName"<<endl;
         return 0;
     }
     // Important: GMM uses OpenMP to speed up
@@ -30,6 +34,8 @@ int main(int argc, char **argv) {
     string outputBase(argv[3]);
     string types[5] = {"traj", "hog", "hof", "mbhx", "mbhy"};
     vector<FisherVector*> fvs(5, NULL);
+
+    char* video = argv[4];
 
     //FV para
     int numClusters;
@@ -75,32 +81,9 @@ int main(int argc, char **argv) {
     Mbhx = new float[MBHX_DIM *MAX_NUM_DATA];
     Mbhy = new float[MBHY_DIM *MAX_NUM_DATA];
 
-    float *pTraj, *pHog, *pHof, *pMbhx, *pMbhy;
-    pTraj = Traj;
-    pHog  = Hog;
-    pHof  = Hof;
-    pMbhx = Mbhx;
-    pMbhy = Mbhy;
+    long numData = 0;
 
-    int numData = 0;
-
-    while (getline(cin, line))  {
-        DTFeature_f feat(line);
-        //TODO: Store feature of DT
-        memcpy(pTraj, feat.traj, sizeof(float)*TRAJ_DIM); pTraj += TRAJ_DIM;
-        memcpy(pHog,  feat.hog, sizeof(float)*HOG_DIM); pHog += HOG_DIM;
-        memcpy(pHof,  feat.hof, sizeof(float)*HOF_DIM); pHof += HOF_DIM;
-        memcpy(pMbhx, feat.mbhx, sizeof(float)*MBHX_DIM); pMbhx += MBHX_DIM;
-        memcpy(pMbhy, feat.mbhy, sizeof(float)*MBHY_DIM); pMbhy += MBHY_DIM;
-
-
-        numData++;
-
-        if (numData == MAX_NUM_DATA) {
-            printf("%s\n", "the number of IDT points have reached the MAX_NUM_DATA");
-            break;
-        }
-    }
+    numData = getIdtFeature(video, MAX_NUM_DATA, Traj, Hog, Hof, Mbhx, Mbhy);
 
     t3 = clock();
 

@@ -17,7 +17,7 @@ INC += -I./
 LIB  = -lm -lrt -lpthread -ldl -std=c++0x
 LIB += -L$(CUDA_ROOT)/lib64/ -lcudart -lcufft 
 LIB += -fopenmp -lcublas
-LIB += -lvl -lalg -L./alglib -L./vl
+LIB += -lvl -lalg -L./alglib -L./vl `pkg-config --libs opencv-2.4.9 libavformat libavdevice libavutil libavcodec libswscale`
 
 CXX = g++ -pipe
 
@@ -27,7 +27,7 @@ CXX = g++ -pipe
 CC = gcc -pipe
 LINK	= -O3 -pthread
 CFLAGS	= -O3 -c -pthread -fopenmp -DVL_DISABLE_AVX
-CXXFLAGS= -O3 -c -pthread -std=c++0x -fopenmp -DVL_DISABLE_AVX
+CXXFLAGS= -O3 -c -pthread -std=c++0x -fopenmp -DVL_DISABLE_AVX `pkg-config --cflags opencv-2.4.9`
 
 compute_fv_gpu: $(CXXOBJECTS) cuda_files.o
 	$(CXX) $(LINK) -o compute_fv_gpu $(CXXOBJECTS) cuda_files.o $(LIB)
