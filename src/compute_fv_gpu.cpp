@@ -15,7 +15,7 @@
 
 using namespace std;
 
-#define MAX_NUM_DATA 100000
+#define MAX_NUM_DATA 5000000
 
 
 long getIdtFeature(char *video, long MAXFEATURE, float * Traj,float *Hog, float *Hof, float *Mbhx, float *Mbhy);
