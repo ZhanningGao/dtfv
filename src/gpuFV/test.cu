@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 
 	// save data project mean dst
 
-	gpu_init(0);
+	gpu_init(1);
 
 	double start = wallclock();
 
